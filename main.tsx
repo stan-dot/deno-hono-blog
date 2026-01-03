@@ -42,6 +42,9 @@ function Layout(props: {
 // ---- Helpers -----------------------------------------------
 
 async function loadPost(slug: string) {
+  if (slug.includes("/") || slug.includes("\\") || slug.includes("..")) {
+    throw new Error("Invalid slug")
+  }
   const path = `${POSTS_DIR}/${slug}.md`
   const raw = await Deno.readTextFile(path)
   const { data, content } = matter(raw)
@@ -113,7 +116,13 @@ app.get("/post/:slug", async (c) => {
 })
 
 // Optional static support (images, css later)
-app.use("/static/*", serveStatic({ root: "./" }))
+app.use(
+  "/static/*",
+  serveStatic({
+    root: "./static",
+    rewriteRequestPath: (path) => path.replace(/^\/static/, ""),
+  })
+)
 
 // ---- Start -------------------------------------------------
 
